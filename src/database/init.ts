@@ -1,6 +1,6 @@
 import { query } from "./db";
 
-const createTables = async () => {
+export const createTables = async () => {
 	try {
 		await query(`
 			CREATE TABLE IF NOT EXISTS mousemove_events (
@@ -41,6 +41,20 @@ const createTables = async () => {
 	} catch (err) {
 		console.error("Error creating table:", err);
 	}
+	
+	try {
+		await query(`
+			CREATE TABLE IF NOT EXISTS time_on_page (
+				id SERIAL PRIMARY KEY,
+				user_id VARCHAR NOT NULL,
+				url VARCHAR NOT NULL,
+				start_time BIGINT NOT NULL,
+				end_time BIGINT NOT NULL
+			);
+		`);
+		console.log("Table created or already exists");
+	} catch (err) {
+		console.error("Error creating table:", err);
+	}
 };
 
-createTables();

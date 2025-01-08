@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",
+    "@elysiajs/static": "^1.2.0",
     "@types/pg": "^8.11.10",
     "elysia": "latest",
     "pg": "^8.13.1"

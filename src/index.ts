@@ -6,15 +6,20 @@ import { cors } from "@elysiajs/cors";
 import EventStorageController from "./controllers/EventStorage.controller";
 
 // types
-import { IEvents } from "./model/events";
+import { IEvents, ITimeOnPage } from "./model/events";
+
+// database init
+import { createTables } from "./database/init";
+createTables();
 
 const app = new Elysia();
 
 // routing
-app.get("/", () => "Hello Elysia");
 app.post("/", ({ body }: { body: IEvents }) =>
     EventStorageController.saveEvents(body),
 );
+
+app.post("/time", ({ body }: { body: string}) => EventStorageController.saveTimeOnPage(body))
 
 // cors settings
 app.use(
