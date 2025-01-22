@@ -8,7 +8,7 @@ class EventStorageService {
 
             query(
                 "INSERT INTO scroll_events (scrollY, timestamp) VALUES ($1, $2)",
-                [scrollY, timestamp],
+                [scrollY, timestamp]
             );
         }
     }
@@ -19,7 +19,7 @@ class EventStorageService {
 
             query(
                 "INSERT INTO mousemove_events (x, y, timestamp) VALUES ($1, $2, $3)",
-                [x, y, timestamp],
+                [x, y, timestamp]
             );
         }
     }
@@ -30,7 +30,7 @@ class EventStorageService {
 
             query(
                 "INSERT INTO click_events (x, y, timestamp) VALUES ($1, $2, $3)",
-                [x, y, timestamp],
+                [x, y, timestamp]
             );
         }
     }
@@ -44,7 +44,7 @@ class EventStorageService {
             end_time: string;
         } = await query(
             "SELECT * FROM time_on_page WHERE user_id = $1 ORDER BY id DESC LIMIT 1",
-            [userId],
+            [userId]
         ).then((res) => res.rows[0]);
 
         return record;
@@ -54,20 +54,47 @@ class EventStorageService {
         userId: string,
         url: string,
         startTime: number,
-        endTime: number,
+        endTime: number
     ) {
         query(
             "INSERT INTO time_on_page (user_id, url, start_time, end_time) VALUES ($1, $2, $3, $4)",
-            [userId, url, startTime, endTime],
+            [userId, url, startTime, endTime]
         );
     }
 
     async updateEndTime(id: number, endTime: number) {
-		console.log("update end time")
+        console.log("update end time");
         query("UPDATE time_on_page SET end_time = $1 WHERE id = $2", [
             endTime,
             id,
         ]);
+    }
+
+    async getStatistics() {
+        const clickEvents = await query(
+            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM click_events GROUP BY hour ORDER BY hour"
+        ).then((res) => res.rows);
+
+        const scrollEvents = await query(
+            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM scroll_events GROUP BY hour ORDER BY hour"
+        ).then((res) => res.rows);
+
+        const mousemoveEvents = await query(
+            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM mousemove_events GROUP BY hour ORDER BY hour"
+        ).then((res) => res.rows);
+
+        const timeOnPageStats = await query(
+            "SELECT url, AVG(end_time - start_time) as avg_time, COUNT(*) as visits FROM time_on_page GROUP BY url"
+        ).then((res) => res.rows);
+
+        return {
+            eventsByHour: {
+                clicks: clickEvents,
+                scrolls: scrollEvents,
+                mousemoves: mousemoveEvents,
+            },
+            pageStatistics: timeOnPageStats,
+        };
     }
 }
 

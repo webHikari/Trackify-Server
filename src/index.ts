@@ -16,20 +16,24 @@ const app = new Elysia();
 
 // routing
 app.post("/", ({ body }: { body: IEvents }) =>
-    EventStorageController.saveEvents(body),
+    EventStorageController.saveEvents(body)
 );
 
-app.post("/time", ({ body }: { body: string}) => EventStorageController.saveTimeOnPage(body))
+app.post("/time", ({ body }: { body: string }) =>
+    EventStorageController.saveTimeOnPage(body)
+);
+
+app.get("/statistics", () => EventStorageController.getStatistics());
 
 // cors settings
 app.use(
     cors({
         origin: "http://localhost:5173",
-    }),
+    })
 );
 
 app.listen(3000);
 
 console.log(
-    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
+    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );
