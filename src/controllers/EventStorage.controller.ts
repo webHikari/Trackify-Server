@@ -81,7 +81,7 @@ class EventStorageController {
             const statistics = await EventStorageService.getStatistics();
             return {
                 status: 200,
-                body: statistics,
+                statistics,
             };
         } catch (error) {
             return {

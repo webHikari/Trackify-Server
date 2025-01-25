@@ -63,7 +63,6 @@ class EventStorageService {
     }
 
     async updateEndTime(id: number, endTime: number) {
-        console.log("update end time");
         query("UPDATE time_on_page SET end_time = $1 WHERE id = $2", [
             endTime,
             id,
@@ -71,29 +70,52 @@ class EventStorageService {
     }
 
     async getStatistics() {
-        const clickEvents = await query(
-            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM click_events GROUP BY hour ORDER BY hour"
-        ).then((res) => res.rows);
+        // Статистика по дням недели
+        const weekdayStats = await query(`
+            SELECT 
+                EXTRACT(DOW FROM TO_TIMESTAMP(start_time / 1000)) as weekday,
+                COUNT(*) as visits
+            FROM time_on_page 
+            GROUP BY weekday 
+            ORDER BY weekday
+        `).then((res) => res.rows);
 
-        const scrollEvents = await query(
-            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM scroll_events GROUP BY hour ORDER BY hour"
-        ).then((res) => res.rows);
+        const hourlyStats = await query(`
+            SELECT 
+                EXTRACT(HOUR FROM TO_TIMESTAMP(start_time / 1000)) as hour,
+                COUNT(*) as visits
+            FROM time_on_page 
+            GROUP BY hour 
+            ORDER BY hour
+        `).then((res) => res.rows);
 
-        const mousemoveEvents = await query(
-            "SELECT DATE_TRUNC('hour', TO_TIMESTAMP(timestamp / 1000)) as hour, COUNT(*) as count FROM mousemove_events GROUP BY hour ORDER BY hour"
-        ).then((res) => res.rows);
+        // Статистика по дням (временная линия)
+        const timelineStats = await query(`
+            SELECT 
+                DATE(TO_TIMESTAMP(start_time / 1000)) as date,
+                COUNT(*) as visits
+            FROM time_on_page 
+            GROUP BY date 
+            ORDER BY date
+        `).then((res) => res.rows);
 
-        const timeOnPageStats = await query(
-            "SELECT url, AVG(end_time - start_time) as avg_time, COUNT(*) as visits FROM time_on_page GROUP BY url"
-        ).then((res) => res.rows);
+        // Топ посещаемых страниц
+        const topPages = await query(`
+            SELECT 
+                url,
+                COUNT(*) as visits,
+                AVG(end_time - start_time) as avg_time
+            FROM time_on_page 
+            GROUP BY url 
+            ORDER BY visits DESC 
+            LIMIT 10
+        `).then((res) => res.rows);
 
         return {
-            eventsByHour: {
-                clicks: clickEvents,
-                scrolls: scrollEvents,
-                mousemoves: mousemoveEvents,
-            },
-            pageStatistics: timeOnPageStats,
+            weekdayActivity: weekdayStats,
+            hourlyActivity: hourlyStats,
+            timeline: timelineStats,
+            topPages: topPages,
         };
     }
 }
