@@ -58,6 +58,22 @@ export const createTables = async () => {
         console.error("Error creating table:", err);
     }
 
+	try {
+		await query(`
+			CREATE TABLE IF NOT EXISTS geo_visits (
+			id SERIAL PRIMARY KEY,            
+			user_ip VARCHAR(45) NOT NULL,     
+			latitude DECIMAL(9,6) NOT NULL,   
+			longitude DECIMAL(9,6) NOT NULL,  
+			country VARCHAR(100),             
+			city VARCHAR(100),                
+			visit_time TIMESTAMP DEFAULT NOW()
+		)`);
+        console.log("Table created or already exists");
+	} catch (err) {
+        console.error("Error creating table:", err);
+	}
+
     try {
 		for (let i = 0; i < 20; i++) {
 			// await seedDatabase();

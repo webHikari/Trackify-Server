@@ -1,6 +1,7 @@
 // core
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { ip } from "elysia-ip";
 
 // controllers
 import EventStorageController from "./controllers/EventStorage.controller";
@@ -14,23 +15,27 @@ createTables();
 
 const app = new Elysia();
 
-// routing
-app.post("/", ({ body }: { body: IEvents }) =>
-    EventStorageController.saveEvents(body)
-);
+// app settings
+app.use(ip())
 
-app.post("/time", ({ body }: { body: string }) =>
-    EventStorageController.saveTimeOnPage(body)
-);
-
-app.get("/statistics", () => EventStorageController.getStatistics());
-
-// cors settings
 app.use(
     cors({
         origin: "http://localhost:5173",
     })
 );
+
+// routing
+app.post("/", ({ body }: { body: IEvents }) =>
+    EventStorageController.saveEvents(body)
+);
+
+app.post("/time", ({ body, ip }: { body: string; ip: string }) => {
+    EventStorageController.saveGeoByIp(ip);
+    EventStorageController.saveTimeOnPage(body);
+});
+
+app.get("/statistics", () => EventStorageController.getStatistics());
+
 
 app.listen(3000);
 

@@ -10,6 +10,7 @@
     "@elysiajs/static": "^1.2.0",
     "@types/pg": "^8.11.10",
     "elysia": "latest",
+    "elysia-ip": "^1.0.8",
     "pg": "^8.13.1"
   },
   "devDependencies": {

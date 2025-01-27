@@ -1,3 +1,4 @@
+import { query } from "../database/db";
 import { IEvents, ITimeOnPage } from "../model/events";
 import EventStorageService from "../service/EventStorage.service";
 
@@ -56,13 +57,13 @@ class EventStorageController {
         console.log(currentRecord);
 
         const sameSite =
-            currentRecord.url === url &&
+            currentRecord?.url === url &&
             currentRecord.start_time === String(startTime);
 
         if (sameSite)
             await EventStorageService.updateEndTime(currentRecord.id, endTime);
 
-        if (currentRecord.url !== url)
+        if (currentRecord?.url !== url)
             await EventStorageService.insertRecord(
                 userId,
                 url,
@@ -90,6 +91,30 @@ class EventStorageController {
             };
         }
     }
+	
+	async saveGeoByIp(ip: string) {
+		// local shit
+		if (ip.startsWith("::ffff:")) {
+			ip = ip.replace("::ffff:", "");
+			return;
+		}
+
+		const savedGeo = await query(
+			`SELECT * FROM geo_visits WHERE user_ip = $1`,
+			[ip]
+		).then((res) => res.rows[0])
+
+		if (savedGeo) return;
+
+		const response = await fetch(`http://ip-api.com/json/${ip}`);
+		const geoData = await response.json();
+	
+		// do smth with geo, store maybe drink it, wip
+
+
+		console.log("GEODATA: ", geoData)
+
+	}
 }
 
 export default new EventStorageController();
