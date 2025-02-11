@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15
+    container_name: trackify-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  server:
+    build: .
+    container_name: trackify-server
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgres://postgres:root@db:5432/postgres"
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
